@@ -6,6 +6,8 @@ This patch is made to improve performance of the ViewTube userscript from Sebaro
 It is specially aimed at use with the VLC plugin but should not break compatibiliy with other plugins
 and probably improve totem performance the same way as VLCs (not tested by me).
 
+You need to disable cookies in your browser on Dailymotion to make this site work!
+
 Fixes:
 
 - start VLCs playback without delay
