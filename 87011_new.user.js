@@ -133,16 +133,18 @@ function createVideoElement (type, content) {
     appendMyElement (player['playerContent'], player['contentVideo']); 
   }
   /* Resolve redirects, if possible */
-    try {
+  try {
     var GM_xml = GM_xmlhttpRequest({
         method: "HEAD",
         url: content,
         synchronous: false,
         onload: function(response) {
-          createPlayerElement(type, response.finalUrl);
+          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
+          createPlayerElement(type, content);
         },
         onabort: function(response) {
-          createPlayerElement(type, response.finalUrl);
+          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
+          createPlayerElement(type, content);
         },
         onprogress: function(response) {    // for testing the abort. This is required in Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
           GM_xml.abort();

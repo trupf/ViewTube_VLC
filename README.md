@@ -10,9 +10,8 @@ You need to disable cookies in your browser on Dailymotion to make this site wor
 
 Fixes:
 
-- start VLCs playback without delay
 - remove the 'Alt' option and decide browser dependent instead
-- make VLC work with Vimeo in Firefox
+- make VLC work with Vimeo without delay in Firefox
 
 2013/04/08: Initial release against ViewTube 2013-04-06
 
