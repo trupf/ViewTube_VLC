@@ -1,0 +1,32 @@
+Installation
+============
+
+You should first install the Viewtube script from Sebaro either from 
+
+http://greasefire.userscripts.org/scripts/show/87011
+
+or from
+
+http://isebaro.com/viewtube/
+
+It will install a script file in a subdirectory 
+
+<your firefox profile>/gm_scripts/ViewTube
+
+Just replace the installed ...user.js file with the new one and give it the same name as the old file.
+
+If you have the patch command installed you could alternatively use the patch (which by chance will also
+apply without errors to newer versions of the original ViewTube). Put the patch in the same directory as
+original and apply it with 
+
+patch file_to_patch < viewtube_20130410_vlc_performance.patch
+
+e.g.
+
+patch 87011.user.js < viewtube_2013-04-10_vlc_performance.patch
+
+or
+
+patch viewtube-2013-04-10.user.js < viewtube_2013-04-10_vlc_performance.patch
+
+After applying the patch you may delete the patch file (if no errors occured...).
