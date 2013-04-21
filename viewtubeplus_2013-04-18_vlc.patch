@@ -1,0 +1,116 @@
+--- 159658_alt.user.js	2013-04-21 07:35:46.663527427 +0200
++++ 159658_neu.user.js	2013-04-21 08:06:00.536723952 +0200
+@@ -120,6 +120,42 @@ var contact = 'mailto:hamsterbacke@inbox
+ if (window.top != window.self)  return;
+ 
+ // ==========Functions========== //
++function createVideoElement (type, content) {
++  function createPlayerElement (type, content) {
++    player['contentVideo'] = createMyElement (type, content, '', '', '');
++    player['contentVideo'].width = player['contentWidth'];
++    player['contentVideo'].height = player['contentHeight'];
++    styleMyElement (player['contentVideo'], {width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
++    modifyMyElement (player['playerContent'], 'div', '', true);
++    appendMyElement (player['playerContent'], player['contentVideo']); 
++  }
++  /* Resolve redirects, if possible */
++    console.log("before " + content);
++    try {
++    var GM_xml = GM_xmlhttpRequest({
++        method: "HEAD",
++        url: content,
++        synchronous: false,
++        onload: function(response) {
++          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          console.log("after " + content);
++          createPlayerElement(type, content);
++        },
++        onabort: function(response) {
++          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          console.log("after " + content);
++          createPlayerElement(type, content);
++        },
++        onprogress: function(response) {    // for testing the abort. This is required in Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
++          GM_xml.abort();
++        }
++      });
++    }
++    catch(e) { 
++      createPlayerElement(type, content);
++    }    
++}
++
+ function createMyElement (type, content, event, action, target) {
+   var obj = page.doc.createElement(type);
+   if (content) {
+@@ -135,16 +171,14 @@ function createMyElement (type, content,
+       obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure your browser supports HTML5\'s Video and this video codec. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.';
+     }
+     else if (type == 'object') {
+-      if ( navigator.appName == 'Netscape' && (navigator.userAgent.indexOf("AppleWebKit") == -1)) {
+-        obj = page.doc.createElement('embed');
+-        obj.id = 'vtObjectElement';
+-        obj.setAttribute("src", content);
+-        obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a><param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
+-      } else {
+-        obj.id = 'vtObjectElement';
+-        obj.data = content;
+-        obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.<param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
+-        }
++      obj.id = 'vtVideoElement';
++      obj.data = content;
++      obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.<param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
++    }
++    else if (type == 'embed') {
++      obj.id = 'vtVideoElement';
++      obj.setAttribute("src", content);
++      obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.<param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
+     }
+   }
+   if (type == 'video' || type == 'object') {
+@@ -526,13 +560,9 @@ function playMyVideo (play) {
+     player['isPlaying'] = true;
+     modifyMyElement (player['buttonPlay'], 'div', 'Stop', false);
+     styleMyElement (player['buttonPlay'], {color: '#AD0000'});
+-    if (option['plugin'] == 'HTML5') player['contentVideo'] = createMyElement ('video', player['videoList'][player['videoPlay']], '', '', '');
+-    else player['contentVideo'] = createMyElement ('object', player['videoList'][player['videoPlay']], '', '', '');
+-    player['contentVideo'].width = player['contentWidth'];
+-    player['contentVideo'].height = player['contentHeight'];
+-    styleMyElement (player['contentVideo'], {width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
+-    modifyMyElement (player['playerContent'], 'div', '', true);
+-    appendMyElement (player['playerContent'], player['contentVideo']);
++    if (option['plugin'] == 'HTML5') player['contentVideo'] = createVideoElement ('video', player['videoList'][player['videoPlay']]);
++    else if (((navigator.appName == 'Netscape') && (navigator.userAgent.indexOf("AppleWebKit") == -1))) player['contentVideo'] = createVideoElement ('embed', player['videoList'][player['videoPlay']]);
++    else createVideoElement ('object', player['videoList'][player['videoPlay']]);
+   }
+   else {
+     player['isPlaying'] = false;
+@@ -1069,16 +1099,20 @@ else if (page.url.search(/youporn(gay)?.
+        	var youpornVideoFormats = {'1': 'Standard Definition MP4', '2': 'Standard Definition MPEG', '3': 'Low Definition MP4'};
+        	var youpornVideoFound = false;
+        	var youpornThumb = getMyContent (page.url, "image_url\'\\s+:\\s+\'(.*?)'", false);
+-       	var youpornVideoURLmp4Standard = getMyContent (page.url, 'span><a\\shref="(.*?480p_1200k.*?)"', true);
+-       	var youpornVideoURLmpeg = getMyContent (page.url, 'span><a\\shref="(http://\\S+480p_370k.*?)"', true);
++//        var youpornVideoURLmp4Standard = getMyContent (page.url, 'span><a\\shref="(http://\\S+480p_370k.*?)"', true);
++//        if (youpornVideoURLmp4Standard != null) youpornVideoList[youpornVideoFormats[1]] = youpornVideoURLmp4Standard.replace(/&amp;/g, '&');
++        // following statement does return same video as above, but opposite to above the url can also be interpreted by vlc
++       	var youpornVideoURLmp4Standard = getMyContent (page.url, "var encryptedURL = \'(.*?)\'", false);
++       	var youpornVideoURLTitle = getMyContent (page.url,'\'video_title\'.*: "(.*?)"', false);
++       	var youpornVideoURLmp4Standard = Aes.Ctr.decrypt(youpornVideoURLmp4Standard, youpornVideoURLTitle, 256);
++       	if (youpornVideoURLmp4Standard != null) youpornVideoList[youpornVideoFormats[1]] = youpornVideoURLmp4Standard.replace(/&amp;/g, '&');
++       	var youpornVideoURLmpeg = getMyContent (page.url, 'span><a\\shref="(.*?480p_1200k.*?)"', true);
++       	if (youpornVideoURLmpeg != null) youpornVideoList[youpornVideoFormats[2]] = youpornVideoURLmpeg.replace(/&amp;/g, '&');
+        	var youpornVideoURLmp4low = getMyContent (page.url, 'span><a\\shref="(http://\\S+240p.*?)"', true);
++       	if (youpornVideoURLmp4low != null) youpornVideoList[youpornVideoFormats[3]] = youpornVideoURLmp4low.replace(/&amp;/g, '&');
++
++       	if (youpornVideoURLmp4Standard || youpornVideoURLmpeg || youpornVideoURLmp4low) youpornVideoFound = true;
+ 
+-        if (youpornVideoURLmp4Standard || youpornVideoURLmpeg || youpornVideoURLmp4low) {
+-        	youpornVideoFound = true;
+-        	youpornVideoList[youpornVideoFormats[1]] = youpornVideoURLmp4Standard.replace(/&amp;/g, '&');
+-       		youpornVideoList[youpornVideoFormats[2]] = youpornVideoURLmpeg.replace(/&amp;/g, '&');
+-       		youpornVideoList[youpornVideoFormats[3]] = youpornVideoURLmp4low.replace(/&amp;/g, '&');
+-       	}
+        	if (youpornVideoFound) {
+        		/* Create Player */
+        		player = {
