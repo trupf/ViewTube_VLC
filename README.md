@@ -15,7 +15,10 @@ Fixes:
 - make VLC plugin work with Vimeo in Chrome and Chromium with Tampermonkey
   (this special constellation does not work with Sebaro's version)
 
+
 2013/04/08: Initial release against ViewTube 2013-04-06
+
 2013/04/17: updated patch 2013-04-10
+
 2013/04/20: added patch for ViewTubePlus
 
