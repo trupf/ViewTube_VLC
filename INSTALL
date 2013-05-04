@@ -19,14 +19,20 @@ If you have the patch command installed you could alternatively use the patch (w
 apply without errors to newer versions of the original ViewTube). Put the patch in the same directory as
 original and apply it with 
 
-patch file_to_patch < viewtube_20130410_vlc_performance.patch
+patch file_to_patch < viewtube_yyyy-mm-dd_vlc_performance.patch
+
+If you wish to adjust the player to orignal player size + button space on top apply this patch first:
+
+patch file_to_patch < viewtube_yyyy-mm-dd_playersize.patch
 
 e.g.
 
-patch 87011.user.js < viewtube_2013-04-10_vlc_performance.patch
+patch 87011.user.js < viewtube_2013-04-26_playersize.patch
+patch 87011.user.js < viewtube_2013-04-26_vlc_performance.patch
 
 or
 
-patch viewtube-2013-04-10.user.js < viewtube_2013-04-10_vlc_performance.patch
+patch viewtube-2013-04-10.user.js < viewtube_2013-04-26_playersize.patch
+patch viewtube-2013-04-10.user.js < viewtube_2013-04-26_vlc_performance.patch
 
 After applying the patch you may delete the patch file (if no errors occured...).

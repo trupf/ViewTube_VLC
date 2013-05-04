@@ -1,0 +1,73 @@
+--- 87011.user.js	2013-05-04 07:23:49.000000000 +0200
++++ 87011.user_vlc.js	2013-05-04 08:07:41.677609323 +0200
+@@ -92,7 +92,7 @@
+ var player = {};
+ var feature = {'autoplay': true, 'definition': true, 'container': true, 'widesize': true, 'fullsize': true};
+ var option = {'plugin': 'Auto', 'autoplay': false, 'autoget': false, 'definition': 'HD', 'container': 'MP4', 'widesize': false, 'fullsize': false};
+-var plugins = ['Auto', 'Alt', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
++var plugins = ['Auto', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
+ if (navigator.platform.indexOf('Win') != -1) plugins = plugins.concat(['WMP', 'WMP2', 'QT']);
+ else if (navigator.platform.indexOf('Mac') != -1) plugins = plugins.concat(['QT']);
+ var mimetypes = {
+@@ -123,6 +123,43 @@
+  
+ // ==========Functions========== //
+ 
++function createVideoElement (type, content) {
++  function createPlayerElement (type, content) {
++    player['contentVideo'] = createMyElement (type, content, '', '', '');
++    player['contentVideo'].width = player['contentWidth'];
++    player['contentVideo'].height = player['contentHeight'];
++    styleMyElement (player['contentVideo'], {width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
++    modifyMyElement (player['playerContent'], 'div', '', true);
++    appendMyElement (player['playerContent'], player['contentVideo']); 
++  }
++  /* Resolve redirects, if possible */
++  if (page.url.indexOf('blip.tv') == -1) {       // blip doesn't like resoved redirects.....
++    try {
++    var GM_xml = GM_xmlhttpRequest({
++        method: "HEAD",
++        url: content,
++        synchronous: false,
++        onload: function(response) {
++          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          createPlayerElement(type, content);
++        },
++        onabort: function(response) {
++          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          createPlayerElement(type, content);
++        },
++        onprogress: function(response) {    // this is required in Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
++          GM_xml.abort();
++        }
++      });
++    }
++    catch(e) {
++      createPlayerElement(type, content);
++    }
++  } else {
++    createPlayerElement(type, content);
++  }
++}
++
+ function createMyElement (type, content, event, action, target) {
+   var obj = page.doc.createElement(type);
+   if (content) {
+@@ -497,14 +534,9 @@
+     player['isPlaying'] = true;
+     modifyMyElement (player['buttonPlay'], 'div', 'Stop', false);
+     styleMyElement (player['buttonPlay'], {color: '#AD0000'});
+-    if (option['plugin'] == 'HTML5') player['contentVideo'] = createMyElement ('video', player['videoList'][player['videoPlay']], '', '', '');
+-    else if (option['plugin'] == 'Alt') player['contentVideo'] = createMyElement ('embed', player['videoList'][player['videoPlay']], '', '', '');
+-    else player['contentVideo'] = createMyElement ('object', player['videoList'][player['videoPlay']], '', '', '');
+-    player['contentVideo'].width = player['contentWidth'];
+-    player['contentVideo'].height = player['contentHeight'];
+-    styleMyElement (player['contentVideo'], {position: 'relative', width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
+-    modifyMyElement (player['playerContent'], 'div', '', true);
+-    appendMyElement (player['playerContent'], player['contentVideo']);
++    if (option['plugin'] == 'HTML5') player['contentVideo'] = createVideoElement ('video', player['videoList'][player['videoPlay']]);
++    else if (((navigator.appName == 'Netscape') && (navigator.userAgent.indexOf("AppleWebKit") == -1))) player['contentVideo'] = createVideoElement ('embed', player['videoList'][player['videoPlay']]);
++    else createVideoElement ('object', player['videoList'][player['videoPlay']]);
+   }
+   else {
+     player['isPlaying'] = false;
