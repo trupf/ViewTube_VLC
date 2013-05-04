@@ -134,25 +134,25 @@ function createVideoElement (type, content) {
   }
   /* Resolve redirects, if possible */
   if (page.url.indexOf('blip.tv') == -1) {       // blip doesn't like resoved redirects.....
-    try {
+    if (typeof(GM_xmlhttpRequest) == "function") {
     var GM_xml = GM_xmlhttpRequest({
         method: "HEAD",
         url: content,
         synchronous: false,
         onload: function(response) {
-          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
+          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
           createPlayerElement(type, content);
         },
         onabort: function(response) {
-          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
+          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
           createPlayerElement(type, content);
         },
-        onprogress: function(response) {    // this is required in Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
+        onprogress: function(response) {    // this is required in older Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
           GM_xml.abort();
         }
       });
     }
-    catch(e) {
+    else {
       createPlayerElement(type, content);
     }
   } else {

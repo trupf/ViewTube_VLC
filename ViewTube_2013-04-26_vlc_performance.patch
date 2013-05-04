@@ -1,5 +1,5 @@
---- 87011.user.js	2013-05-04 07:23:49.000000000 +0200
-+++ 87011.user_vlc.js	2013-05-04 08:07:41.677609323 +0200
+--- 87011.user.js	2013-05-04 18:05:38.026064570 +0200
++++ 87011_new.user.js	2013-05-04 17:44:13.000000000 +0200
 @@ -92,7 +92,7 @@
  var player = {};
  var feature = {'autoplay': true, 'definition': true, 'container': true, 'widesize': true, 'fullsize': true};
@@ -24,25 +24,25 @@
 +  }
 +  /* Resolve redirects, if possible */
 +  if (page.url.indexOf('blip.tv') == -1) {       // blip doesn't like resoved redirects.....
-+    try {
++    if (typeof(GM_xmlhttpRequest) == "function") {
 +    var GM_xml = GM_xmlhttpRequest({
 +        method: "HEAD",
 +        url: content,
 +        synchronous: false,
 +        onload: function(response) {
-+          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
 +          createPlayerElement(type, content);
 +        },
 +        onabort: function(response) {
-+          content = (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content;
++          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
 +          createPlayerElement(type, content);
 +        },
-+        onprogress: function(response) {    // this is required in Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
++        onprogress: function(response) {    // this is required in older Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
 +          GM_xml.abort();
 +        }
 +      });
 +    }
-+    catch(e) {
++    else {
 +      createPlayerElement(type, content);
 +    }
 +  } else {
