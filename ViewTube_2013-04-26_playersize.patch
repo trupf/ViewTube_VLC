@@ -28,7 +28,7 @@
 -    styleMyElement (myPlayerWindow, {position: 'relative', width: '620px', height: '360px', backgroundColor: '#F4F4F4', zIndex: '99999'});
 +    var PlayerHeight = dmPlayerWindow.clientHeight + 22;
 +    var PlayerWidth = dmPlayerWindow.clientWidth;
-+    styleMyElement (myPlayerWindow, {position: 'relative',width: playerWidth + 'px', height: playerHeight + 'px', backgroundColor: '#F4F4F4', zIndex: '99999'});
++    styleMyElement (myPlayerWindow, {position: 'relative',width: PlayerWidth + 'px', height: PlayerHeight + 'px', backgroundColor: '#F4F4F4', zIndex: '99999'});
      modifyMyElement (dmPlayerWindow, 'div', '', true);
      styleMyElement (dmPlayerWindow, {height: '100%'});
      appendMyElement (dmPlayerWindow, myPlayerWindow);
@@ -38,8 +38,8 @@
  	  'videoThumb': dmVideoThumb,
 -	  'playerWidth': 620,
 -	  'playerHeight': 360,
-+	  'playerWidth': playerWidth,
-+	  'playerHeight': playerHeight,
++	  'playerWidth': PlayerWidth,
++	  'playerHeight': PlayerHeight,
  	  'playerWideWidth': 970,
  	  'playerWideHeight': 510,
  	  'sidebarWindow': dmSidebarWindow,

@@ -946,7 +946,7 @@ else if (page.url.indexOf('dailymotion.com/video') != -1) {
     var myPlayerWindow = createMyElement ('div', '', '', '', '');
     var PlayerHeight = dmPlayerWindow.clientHeight + 22;
     var PlayerWidth = dmPlayerWindow.clientWidth;
-    styleMyElement (myPlayerWindow, {position: 'relative',width: playerWidth + 'px', height: playerHeight + 'px', backgroundColor: '#F4F4F4', zIndex: '99999'});
+    styleMyElement (myPlayerWindow, {position: 'relative',width: PlayerWidth + 'px', height: PlayerHeight + 'px', backgroundColor: '#F4F4F4', zIndex: '99999'});
     modifyMyElement (dmPlayerWindow, 'div', '', true);
     styleMyElement (dmPlayerWindow, {height: '100%'});
     appendMyElement (dmPlayerWindow, myPlayerWindow);
@@ -987,8 +987,8 @@ else if (page.url.indexOf('dailymotion.com/video') != -1) {
 	  'videoList': dmVideoList,
 	  'videoPlay': dmDefaultVideo,
 	  'videoThumb': dmVideoThumb,
-	  'playerWidth': playerWidth,
-	  'playerHeight': playerHeight,
+	  'playerWidth': PlayerWidth,
+	  'playerHeight': PlayerHeight,
 	  'playerWideWidth': 970,
 	  'playerWideHeight': 510,
 	  'sidebarWindow': dmSidebarWindow,
