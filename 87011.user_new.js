@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		ViewTube
-// @version		2013.04.26
+// @version		2013.05.21
 // @namespace		sebaro
 // @description		Watch videos from video sharing websites without Flash Player.
 // @include		http://youtube.com*
@@ -128,23 +128,29 @@ function createVideoElement (type, content) {
     player['contentVideo'] = createMyElement (type, content, '', '', '');
     player['contentVideo'].width = player['contentWidth'];
     player['contentVideo'].height = player['contentHeight'];
-    styleMyElement (player['contentVideo'], {width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
+    styleMyElement (player['contentVideo'], {position: 'relative', width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
     modifyMyElement (player['playerContent'], 'div', '', true);
     appendMyElement (player['playerContent'], player['contentVideo']); 
   }
   /* Resolve redirects, if possible */
-  if (page.url.indexOf('blip.tv') == -1) {       // blip doesn't like resoved redirects.....
     if (typeof(GM_xmlhttpRequest) == "function") {
     var GM_xml = GM_xmlhttpRequest({
         method: "HEAD",
+	headers: {
+	  "Referer": page.url
+	},
         url: content,
         synchronous: false,
         onload: function(response) {
+	  GM_log("Before2: " +content);
           content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
+	  GM_log("After2: " +content);
           createPlayerElement(type, content);
         },
         onabort: function(response) {
+	  GM_log("Before3: " +content);
           content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
+	  GM_log("After3: " +content);
           createPlayerElement(type, content);
         },
         onprogress: function(response) {    // this is required in older Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
@@ -155,9 +161,6 @@ function createVideoElement (type, content) {
     else {
       createPlayerElement(type, content);
     }
-  } else {
-    createPlayerElement(type, content);
-  }
 }
 
 function createMyElement (type, content, event, action, target) {
@@ -935,7 +938,6 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
 // =====DailyMotion===== //
 
 else if (page.url.indexOf('dailymotion.com/video') != -1) {
-
   /* Get Player Window */
   var dmPlayerWindow = getMyElement ('', 'div', 'class', 'dmpi_video_playerv4 span-8', 0, false);
   if (!dmPlayerWindow) {
@@ -1509,7 +1511,7 @@ else if (page.url.indexOf('blip.tv') != -1) {
 
   /* Get Player Window */
   var blipPlayerWidth, blipPlayerHeight;
-  var blipPlayerWindow = getMyElement ('', 'div', 'class', 'EpisodePlayer', 0, false);
+  var blipPlayerWindow = getMyElement ('', 'div', 'class', 'EpisodePlayer', 0, false) || getMyElement ('', 'div', 'id', 'ErrorWrap', -1, false);
   if (!blipPlayerWindow) {
     blipPlayerWindow = getMyElement ('', 'div', 'id', 'PlayerEmbed', -1, false);
     blipPlayerWidth = 596;

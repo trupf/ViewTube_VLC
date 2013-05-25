@@ -1,5 +1,5 @@
---- 87011.user.js	2013-05-04 18:05:38.026064570 +0200
-+++ 87011_new.user.js	2013-05-04 17:44:13.000000000 +0200
+--- 87011.user_org.js	2013-05-04 07:23:49.000000000 +0200
++++ 87011.user_new.js	2013-05-25 13:22:27.000000000 +0200
 @@ -92,7 +92,7 @@
  var player = {};
  var feature = {'autoplay': true, 'definition': true, 'container': true, 'widesize': true, 'fullsize': true};
@@ -9,7 +9,7 @@
  if (navigator.platform.indexOf('Win') != -1) plugins = plugins.concat(['WMP', 'WMP2', 'QT']);
  else if (navigator.platform.indexOf('Mac') != -1) plugins = plugins.concat(['QT']);
  var mimetypes = {
-@@ -123,6 +123,43 @@
+@@ -123,6 +123,46 @@
   
  // ==========Functions========== //
  
@@ -18,23 +18,29 @@
 +    player['contentVideo'] = createMyElement (type, content, '', '', '');
 +    player['contentVideo'].width = player['contentWidth'];
 +    player['contentVideo'].height = player['contentHeight'];
-+    styleMyElement (player['contentVideo'], {width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
++    styleMyElement (player['contentVideo'], {position: 'relative', width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
 +    modifyMyElement (player['playerContent'], 'div', '', true);
 +    appendMyElement (player['playerContent'], player['contentVideo']); 
 +  }
 +  /* Resolve redirects, if possible */
-+  if (page.url.indexOf('blip.tv') == -1) {       // blip doesn't like resoved redirects.....
 +    if (typeof(GM_xmlhttpRequest) == "function") {
 +    var GM_xml = GM_xmlhttpRequest({
 +        method: "HEAD",
++	headers: {
++	  "Referer": page.url
++	},
 +        url: content,
 +        synchronous: false,
 +        onload: function(response) {
++	  GM_log("Before2: " +content);
 +          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
++	  GM_log("After2: " +content);
 +          createPlayerElement(type, content);
 +        },
 +        onabort: function(response) {
++	  GM_log("Before3: " +content);
 +          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
++	  GM_log("After3: " +content);
 +          createPlayerElement(type, content);
 +        },
 +        onprogress: function(response) {    // this is required in older Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
@@ -45,15 +51,12 @@
 +    else {
 +      createPlayerElement(type, content);
 +    }
-+  } else {
-+    createPlayerElement(type, content);
-+  }
 +}
 +
  function createMyElement (type, content, event, action, target) {
    var obj = page.doc.createElement(type);
    if (content) {
-@@ -497,14 +534,9 @@
+@@ -497,14 +537,9 @@
      player['isPlaying'] = true;
      modifyMyElement (player['buttonPlay'], 'div', 'Stop', false);
      styleMyElement (player['buttonPlay'], {color: '#AD0000'});
