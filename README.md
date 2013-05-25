@@ -22,3 +22,7 @@ Fixes:
 
 2013/04/20: added patch for ViewTubePlus
 
+2013/05/03: update to ViewTube 2013-04-26
+
+2013/05/25: update to ViewTube 2013-05-21 and fix of blip.com
+
