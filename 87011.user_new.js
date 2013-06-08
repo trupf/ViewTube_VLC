@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		ViewTube
-// @version		2013.05.21
+// @version		2013.06.06
 // @namespace		sebaro
 // @description		Watch videos from video sharing websites without Flash Player.
 // @include		http://youtube.com*
@@ -95,6 +95,7 @@ var option = {'plugin': 'Auto', 'autoplay': false, 'autoget': false, 'definition
 var plugins = ['Auto', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
 if (navigator.platform.indexOf('Win') != -1) plugins = plugins.concat(['WMP', 'WMP2', 'QT']);
 else if (navigator.platform.indexOf('Mac') != -1) plugins = plugins.concat(['QT']);
+else plugins = plugins.concat(['Totem', 'Xine']);
 var mimetypes = {
   'MPEG': 'video/mpeg',
   'MP4': 'video/mp4',
@@ -107,7 +108,9 @@ var mimetypes = {
   'WMP': 'application/x-ms-wmp',
   'WMP2': 'application/x-mplayer2',
   'QT': 'video/quicktime',
-  'VLC': 'application/x-vlc-plugin'
+  'VLC': 'application/x-vlc-plugin',
+  'Totem': 'application/x-totem-plugin',
+  'Xine': 'application/x-xine-plugin'
 };
 
 // Links
@@ -181,7 +184,8 @@ function createMyElement (type, content, event, action, target) {
       obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.<param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
     }
     else if (type == 'embed') {
-      obj.src = content;
+      if (option['plugin'] == 'VLC') obj.setAttribute('target', content);
+      else obj.src = content;
       obj.innerHTML = '<br><br>The video should be loading. If it doesn\'t load, make sure a video plugin is installed. If you think it\'s a script issue, please report it <a href="' + contact + '">here</a>.<param name="scale" value="tofit"><param name="scale" value="exactfit"><param name="stretchtofit" value="true"><param name="autostart" value="true"><param name="autoplay" value="true">';
     }
   }
@@ -304,8 +308,8 @@ function getMyElement (obj, type, from, value, child, content) {
     else if (from == 'ns') getObj = pObj.getElementsByTagNameNS(value, type);
   }
   chObj = (child >= 0) ? getObj[child] : getObj;
-  if (content) {
-    if (type == 'body' || type == 'div' || type == 'option') coObj = chObj.innerHTML;
+  if (content && chObj) {
+    if (type == 'html' || type == 'body' || type == 'div' || type == 'option') coObj = chObj.innerHTML;
     else if (type == 'object') coObj = chObj.data;
     else if (type == 'img' || type == 'video' || type == 'embed') coObj = chObj.src;
     else coObj = chObj.textContent;
@@ -653,7 +657,8 @@ function getMyContent (url, pattern, clean) {
   var isIE = (navigator.appName.indexOf('Internet Explorer') != -1) ? true : false;
   var getMethod = (url != page.url || isIE) ? 'XHR' : 'DOM';
   if (getMethod == 'DOM') {
-    myPageContent = getMyElement ('', 'body', '', '', -1, true);
+    myPageContent = getMyElement ('', 'html', 'tag', '', 0, true);
+    if (!myPageContent) myPageContent = getMyElement ('', 'body', '', '', -1, true);
     if (clean) myPageContent = cleanMyContent (myPageContent, true);
     myVideosParse = myPageContent.match (pattern);
     myVideosContent = (myVideosParse) ? myVideosParse[1] : null;
@@ -775,9 +780,6 @@ function showMyMessage (cause, content) {
 
 if (page.url.indexOf('youtube.com/watch') != -1) {
 
-  /* Check Video Availability */
-  if (getMyElement ('', 'div', 'id', 'watch7-player-unavailable', -1, false)) return;
- 
   /* Get Player Window */
   var ytFeatherBeta;
   var ytPlayerWindow = getMyElement ('', 'div', 'id', 'player', -1, false);
@@ -795,7 +797,7 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
     if (ytWatchPlayer) {
       styleMyElement (ytWatchPlayer, {display: 'none'});
       var ytFlashVideo, ytH5Video;
-      ytFlashVideo = getMyElement (ytWatchPlayer, 'embed', 'tag', '', 0, false);
+      ytFlashVideo = getMyElement (ytWatchPlayer, 'embed', 'tag', '', 0, false) || getMyElement (ytWatchPlayer, 'object', 'tag', '', 0, false);
       if (ytFlashVideo) modifyMyElement (ytWatchPlayer, 'div', '', true);
       else {
 	var ytRemoveVideo = page.win.setInterval (function() {
@@ -817,6 +819,10 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
     /* Get Video Thumbnail */
     var ytVideoThumb = getMyContent (page.url, 'link\\s+itemprop="thumbnailUrl"\\s+href="(.*?)"', false);
     if (!ytVideoThumb) ytVideoThumb = getMyContent (page.url, 'meta\\s+property="og:image"\\s+content="(.*?)"', false);
+    if (!ytVideoThumb) {
+      var ytVideoID = page.url.match (/watch\?v=(.*?)(&|$)/);
+      if (ytVideoID) ytVideoThumb = 'http://img.youtube.com/vi/' + ytVideoID[1] + '/0.jpg';
+    }
 
     /* Get Video Title */
     var ytVideoTitle = getMyContent (page.url, 'meta\\s+itemprop="name"\\s+content="(.*?)"', false);
@@ -842,6 +848,7 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
     /* Feather */
     if (ytFeatherBeta) {
       modifyMyElement (ytPlayerWindow, 'div', '', true);
+      styleMyElement (ytPlayerWindow, {height: '100%'});
       appendMyElement (ytPlayerWindow, myPlayerWindow);
     }
 
@@ -899,6 +906,7 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
       if (ytVideoFound) {
 	/* Get Watch Sidebar */
 	var ytSidebarWindow = getMyElement ('', 'div', 'id', 'watch7-sidebar', -1, false);
+	if (!ytSidebarWindow) ytSidebarWindow = getMyElement ('', 'div', 'id', 'rc', -1, false);
 
 	/* Create Player */
 	var ytDefaultVideo = 'Low Definition MP4';
@@ -938,8 +946,9 @@ if (page.url.indexOf('youtube.com/watch') != -1) {
 // =====DailyMotion===== //
 
 else if (page.url.indexOf('dailymotion.com/video') != -1) {
+
   /* Get Player Window */
-  var dmPlayerWindow = getMyElement ('', 'div', 'class', 'dmpi_video_playerv4 span-8', 0, false);
+  var dmPlayerWindow = getMyElement ('', 'div', 'id', 'player_main', -1, false);
   if (!dmPlayerWindow) {
     showMyMessage ('!player');
   }
@@ -979,7 +988,6 @@ else if (page.url.indexOf('dailymotion.com/video') != -1) {
       if (dmVideoFound) {
 	/* Get Watch Sidebar */
 	var dmSidebarWindow = getMyElement ('', 'div', 'id', 'right_content_box', -1, false);
-	styleMyElement (dmSidebarWindow, {marginTop: '-420px'});
 	
 	/* Create Player */
 	var dmDefaultVideo = 'Low Definition MP4';
@@ -991,11 +999,11 @@ else if (page.url.indexOf('dailymotion.com/video') != -1) {
 	  'videoThumb': dmVideoThumb,
 	  'playerWidth': PlayerWidth,
 	  'playerHeight': PlayerHeight,
-	  'playerWideWidth': 970,
-	  'playerWideHeight': 510,
+	  'playerWideWidth': 940,
+	  'playerWideHeight': 500,
 	  'sidebarWindow': dmSidebarWindow,
-	  'sidebarMarginNormal': -420,
-	  'sidebarMarginWide': 10
+	  'sidebarMarginNormal': (dmSidebarWindow && dmSidebarWindow.style.marginTop) ? -416 : 0,
+	  'sidebarMarginWide': (dmSidebarWindow && dmSidebarWindow.style.marginTop) ? 10 : 520
 	};
 	feature['container'] = false;
 	option['definitions'] = ['Full High Definition', 'High Definition', 'Standard Definition', 'Low Definition', 'Very Low Definition'];
@@ -1109,12 +1117,11 @@ else if (page.url.indexOf('metacafe.com/watch') != -1) {
 
     /* Get Videos Content */
     var mcVideosContent = getMyContent (page.url, '"mediaData":"(.*?)"', false);
-    var mcVideosContent2 = getMyContent (page.url, '"mediaURL":"(.*?)","postRollContentURL"', false);
 
     /* Get Videos */
     if (mcVideosContent) {
       mcVideosContent = cleanMyContent(mcVideosContent, true);
-      var mcVideoFormats = {'highDefinitionMP4': 'High Definition MP4', 'MP4': 'Low Definition MP4'};
+      var mcVideoFormats = {'highDefinitionMP4': 'High Definition MP4', 'MP4': 'Low Definition MP4', 'flv': 'Low Definition FLV'};
       var mcVideoList = {};
       var mcVideoFound = false;
       var mcVideoParser, mcVideoParse, myVideoCode, mcVideoPath, mcVideoKey, mcVideo;
@@ -1131,26 +1138,13 @@ else if (page.url.indexOf('metacafe.com/watch') != -1) {
 	  mcVideoList[myVideoCode] = mcVideo;
 	}
       }
-      if (mcVideosContent2) {
-	mcVideosContent2 = cleanMyContent(mcVideosContent2, true);
-	mcVideoParser = '(.*?)","(.*?)":"(.*?)$';
-	mcVideoParse = mcVideosContent2.match (mcVideoParser);
-	mcVideoPath = (mcVideoParse) ? mcVideoParse[1] : null;
-	mcVideoKeyName = '__gda__';
-	mcVideoKeyValue = (mcVideoParse) ? mcVideoParse[3] : null;
-	if (mcVideoPath && mcVideoKeyName && mcVideoKeyValue) {
-	  if (!mcVideoFound) mcVideoFound = true;
-	  mcVideo = mcVideoPath + '?' + mcVideoKeyName + '=' + mcVideoKeyValue;
-	  mcVideoList['Low Definition FLV'] = mcVideo;
-	}
-      }
       
       if (mcVideoFound) {
 	/* Get Watch Sidebar */
 	var mcSidebarWindow = getMyElement ('', 'div', 'id', 'Sidebar', -1, false);
 	
 	/* Create Player */
-	var mcDefaultVideo = 'Low Definition MP4';
+	var mcDefaultVideo = (mcVideoList['Low Definition MP4']) ? 'Low Definition MP4' : 'Low Definition FLV';
 	player = {
 	  'playerSocket': mcPlayerWindow,
 	  'playerWindow': myPlayerWindow,
@@ -1196,7 +1190,7 @@ else if (page.url.indexOf('break.com') != -1) {
   else {
     /* My Player Window */    
     var myPlayerWindow = createMyElement ('div', '', '', '', '');
-    styleMyElement (myPlayerWindow, {position: 'relative', width: '592px', height: '360px', backgroundColor: '#F4F4F4', zIndex: '99999'});
+    styleMyElement (myPlayerWindow, {position: 'relative', width: '592px', height: '340px', backgroundColor: '#F4F4F4', zIndex: '99999'});
     modifyMyElement (brPlayerWindow, 'div', '', true);
     styleMyElement (brPlayerWindow, {height: '100%', overflow: 'visible'});
     appendMyElement (brPlayerWindow, myPlayerWindow);
@@ -1204,71 +1198,83 @@ else if (page.url.indexOf('break.com') != -1) {
     /* Get Video Thumbnail */
     var brVideoThumb = getMyContent (page.url, 'meta\\s+property="og:image"\\s+content="(.*?)"', false);
     
-    /* Get Video Path */
-    var brVideoPath = getMyContent (page.url, 'videoPath:\\s+\'(.*?)\'', false);
+    /* Get Videos Content */
+    var brVideosContent = getMyContent (page.url, 'flashVars\\s+=\\s+\\{([\\s\\S]*?)\\};', false);
 
-    /* Get Video Token */
-    var brVideoToken = getMyContent (page.url, 'icon:\\s+\'(.*?)\'', false);
-
-    /* Create Video */
-    if (brVideoPath && brVideoToken) {
+    /* Get Videos */
+    if (brVideosContent) {
       var brVideoList = {};
-      var brVideo;
-      if (brVideoPath.indexOf('.flv') != -1) {
-	brVideo = brVideoPath + '?' + brVideoToken;
-	brVideoList['Low Definition FLV'] = brVideo;
-	brVideoPath = brVideoPath.replace(/\.flv/, '.mp4');
-	brVideo = brVideoPath + '?' + brVideoToken;
-	brVideoList['Low Definition MP4'] = brVideo;
-      }
-      else {
-	brVideo = brVideoPath + '?' + brVideoToken;
-	brVideoList['Low Definition MP4'] = brVideo;
+      var brVideoFound = false;
+      var brVideoPath, brVideoToken, brVideo;
+      brVideoPath = brVideosContent.match (/videoPath:\s+'(.*?)'/);
+      brVideoPath = (brVideoPath) ? brVideoPath[1] : null;
+      brVideoToken = brVideosContent.match (/icon:\s+'(.*?)'/);
+      brVideoToken = (brVideoToken) ? brVideoToken[1] : null;
+      if (brVideoPath && brVideoToken) {
+	if (brVideoPath.indexOf('.flv') != -1) {
+	  brVideo = brVideoPath + '?' + brVideoToken;
+	  brVideoList['Low Definition FLV'] = brVideo;
+	  brVideoPath = brVideoPath.replace(/\.flv/, '.mp4');
+	  brVideo = brVideoPath + '?' + brVideoToken;
+	  brVideoList['Low Definition MP4'] = brVideo;
+	}
+	else {
+	  brVideo = brVideoPath + '?' + brVideoToken;
+	  brVideoList['Low Definition MP4'] = brVideo;
+	}
+	if (!brVideoFound) brVideoFound = true;
       }
 
-      /* Get Watch Sidebar */
-      var brSidebarWindow = getMyElement ('', 'aside', 'class', 'sidebar', 0, false);
+      if (brVideoFound) {
+	/* Get Watch Sidebar */
+	var brSidebarWindow = getMyElement ('', 'aside', 'class', 'sidebar', 0, false);
 
-      /* Create Player */
-      var brDefaultVideo = 'Low Definition MP4';
-      var brWindowWidth = page.win.innerWidth || page.doc.documentElement.clientWidth;
-      var brPlayerWidth, brPlayerHeight;
-      if (brWindowWidth > 1280) {
-	brPlayerWidth = 832;
-	brPlayerHeight = 507;
+	/* Create Player */
+	var brDefaultVideo = 'Low Definition MP4';
+	var brWindowWidth = page.win.innerWidth || page.doc.documentElement.clientWidth;
+	var brPlayerWidth, brPlayerHeight;
+	if (brWindowWidth > 1400) {
+	  brPlayerWidth = 832;
+	  brPlayerHeight = 480;
+	}
+	else {
+	  brPlayerWidth = 592;
+	  brPlayerHeight = 340;
+	}
+	player = {
+	  'playerSocket': brPlayerWindow,
+	  'playerWindow': myPlayerWindow,
+	  'videoList': brVideoList,
+	  'videoPlay': brDefaultVideo,
+	  'videoThumb': brVideoThumb,
+	  'playerWidth': brPlayerWidth,
+	  'playerHeight': brPlayerHeight,
+	  'playerWideWidth': 910,
+	  'playerWideHeight': 510,
+	  'sidebarWindow': brSidebarWindow,
+	  'sidebarMarginNormal': 10,
+	  'sidebarMarginWide': 610
+	};
+	if (brWindowWidth > 1400) feature['widesize'] = false;
+	feature['definition'] = false;
+	option['definition'] = 'LD';
+	option['definitions'] = ['Low Definition'];
+	option['containers'] = ['MP4', 'FLV', 'Any'];
+	createMyPlayer ();
       }
       else {
-	brPlayerWidth = 592;
-	brPlayerHeight = 360;
+	var ytVideoId =  getMyContent (page.url, 'youtubeid=(.*?)&', false);
+	if (ytVideoId) {
+	  var ytVideoLink = 'http://youtube.com/watch?v=' + ytVideoId;
+	  showMyMessage ('embed', ytVideoLink);
+	}
+	else {
+	  showMyMessage ('!videos');
+	}
       }
-      player = {
-	'playerSocket': brPlayerWindow,
-	'playerWindow': myPlayerWindow,
-	'videoList': brVideoList,
-	'videoPlay': brDefaultVideo,
-	'videoThumb': brVideoThumb,
-	'playerWidth': brPlayerWidth,
-	'playerHeight': brPlayerHeight,
-	'playerWideWidth': 910,
-	'playerWideHeight': 510,
-	'sidebarWindow': brSidebarWindow,
-	'sidebarMarginNormal': 10,
-	'sidebarMarginWide': 600
-      };
-      if (brWindowWidth > 1280) feature['widesize'] = false;
-      feature['definition'] = false;
-      option['definition'] = 'LD';
-      option['definitions'] = ['Low Definition'];
-      option['containers'] = ['MP4', 'FLV', 'Any'];
-      createMyPlayer ();
     }
     else {
-      var ytVideoId =  getMyContent (page.url, 'youtubeid=(.*?)&', false);
-      if (ytVideoId) {
-	var ytVideoLink = 'http://youtube.com/watch?v=' + ytVideoId;
-	showMyMessage ('embed', ytVideoLink);
-      }
-      else showMyMessage ('!videos');
+      showMyMessage ('!content');
     }
   }
   
@@ -1515,11 +1521,11 @@ else if (page.url.indexOf('blip.tv') != -1) {
   if (!blipPlayerWindow) {
     blipPlayerWindow = getMyElement ('', 'div', 'id', 'PlayerEmbed', -1, false);
     blipPlayerWidth = 596;
-    blipPlayerHeight = 334;
-  }
+    blipPlayerHeight = 356;
+ }
   else {
     blipPlayerWidth = 960;
-    blipPlayerHeight = 540;
+    blipPlayerHeight = 562;
   }
   if (!blipPlayerWindow) {
     showMyMessage ('!player');

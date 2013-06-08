@@ -1,6 +1,6 @@
---- 87011.user.js	2013-05-04 07:23:49.000000000 +0200
-+++ 87011.user_new.js	2013-05-04 07:37:11.914055785 +0200
-@@ -776,7 +776,7 @@
+--- 87011.user.js	2013-06-06 10:10:32.000000000 +0200
++++ 87011.user_new.js	2013-06-08 17:52:45.641160131 +0200
+@@ -778,7 +778,7 @@
       
      /* My Player Window */
      var myPlayerWindow = createMyElement ('div', '', '', '', '');
@@ -9,7 +9,7 @@
      appendMyElement (ytPlayerWindow, myPlayerWindow);
      
      /* Get Video Thumbnail */
-@@ -875,9 +875,9 @@
+@@ -883,9 +883,9 @@
  	  'videoThumb': ytVideoThumb,
  	  'videoTitle': ytVideoTitle,
  	  'playerWidth': 640,
@@ -21,7 +21,7 @@
  	  'sidebarWindow': ytSidebarWindow,
  	  'sidebarMarginNormal': -390,
  	  'sidebarMarginWide': 10
-@@ -912,7 +912,9 @@
+@@ -920,7 +920,9 @@
    else {
      /* My Player Window */
      var myPlayerWindow = createMyElement ('div', '', '', '', '');
@@ -32,7 +32,7 @@
      modifyMyElement (dmPlayerWindow, 'div', '', true);
      styleMyElement (dmPlayerWindow, {height: '100%'});
      appendMyElement (dmPlayerWindow, myPlayerWindow);
-@@ -953,8 +955,8 @@
+@@ -960,8 +962,8 @@
  	  'videoList': dmVideoList,
  	  'videoPlay': dmDefaultVideo,
  	  'videoThumb': dmVideoThumb,
@@ -40,10 +40,10 @@
 -	  'playerHeight': 360,
 +	  'playerWidth': PlayerWidth,
 +	  'playerHeight': PlayerHeight,
- 	  'playerWideWidth': 970,
- 	  'playerWideHeight': 510,
+ 	  'playerWideWidth': 940,
+ 	  'playerWideHeight': 500,
  	  'sidebarWindow': dmSidebarWindow,
-@@ -989,7 +991,9 @@
+@@ -996,7 +998,9 @@
    else {
      /* My Player Window */    
      var myPlayerWindow = createMyElement ('div', '', '', '', '');
@@ -54,7 +54,7 @@
      modifyMyElement (viPlayerWindow, 'div', '', true);
      styleMyElement (viPlayerWindow, {height: '100%'});
      appendMyElement (viPlayerWindow, myPlayerWindow);
-@@ -1029,7 +1033,7 @@
+@@ -1036,7 +1040,7 @@
        if (viVideoFound) {
  	/* Create Player */
  	var viDefaultVideo = 'Low Definition MP4';
@@ -63,7 +63,7 @@
  	feature['container'] = false;
  	feature['widesize'] = false;
  	option['definitions'] = ['High Definition', 'Low Definition', 'Very Low Definition'];
-@@ -1059,7 +1063,9 @@
+@@ -1066,7 +1070,9 @@
    else {
      /* My Player Window */
      var myPlayerWindow = createMyElement ('div', '', '', '', '');
@@ -74,7 +74,7 @@
      modifyMyElement (mcPlayerWindow, 'div', '', true);
      styleMyElement (mcPlayerWindow, {height: '100%'});
      appendMyElement (mcPlayerWindow, myPlayerWindow);
-@@ -1117,8 +1123,8 @@
+@@ -1110,8 +1116,8 @@
  	  'videoList': mcVideoList,
  	  'videoPlay': mcDefaultVideo,
  	  'videoThumb': mcVideoThumb,
@@ -85,3 +85,18 @@
  	  'playerWideWidth': 960,
  	  'playerWideHeight': 510,
  	  'sidebarWindow': mcSidebarWindow,
+@@ -1480,11 +1486,11 @@
+   if (!blipPlayerWindow) {
+     blipPlayerWindow = getMyElement ('', 'div', 'id', 'PlayerEmbed', -1, false);
+     blipPlayerWidth = 596;
+-    blipPlayerHeight = 334;
+-  }
++    blipPlayerHeight = 356;
++ }
+   else {
+     blipPlayerWidth = 960;
+-    blipPlayerHeight = 540;
++    blipPlayerHeight = 562;
+   }
+   if (!blipPlayerWindow) {
+     showMyMessage ('!player');

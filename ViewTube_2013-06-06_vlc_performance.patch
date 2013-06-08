@@ -1,5 +1,5 @@
---- 87011.user_org.js	2013-05-04 07:23:49.000000000 +0200
-+++ 87011.user_new.js	2013-05-25 13:22:27.000000000 +0200
+--- 87011.user.js	2013-06-08 18:07:30.197582704 +0200
++++ 87011.user_new.js	2013-06-08 18:05:09.648719666 +0200
 @@ -92,7 +92,7 @@
  var player = {};
  var feature = {'autoplay': true, 'definition': true, 'container': true, 'widesize': true, 'fullsize': true};
@@ -8,8 +8,8 @@
 +var plugins = ['Auto', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
  if (navigator.platform.indexOf('Win') != -1) plugins = plugins.concat(['WMP', 'WMP2', 'QT']);
  else if (navigator.platform.indexOf('Mac') != -1) plugins = plugins.concat(['QT']);
- var mimetypes = {
-@@ -123,6 +123,46 @@
+ else plugins = plugins.concat(['Totem', 'Xine']);
+@@ -126,6 +126,46 @@
   
  // ==========Functions========== //
  
@@ -56,12 +56,12 @@
  function createMyElement (type, content, event, action, target) {
    var obj = page.doc.createElement(type);
    if (content) {
-@@ -497,14 +537,9 @@
+@@ -501,14 +541,9 @@
      player['isPlaying'] = true;
      modifyMyElement (player['buttonPlay'], 'div', 'Stop', false);
      styleMyElement (player['buttonPlay'], {color: '#AD0000'});
 -    if (option['plugin'] == 'HTML5') player['contentVideo'] = createMyElement ('video', player['videoList'][player['videoPlay']], '', '', '');
--    else if (option['plugin'] == 'Alt') player['contentVideo'] = createMyElement ('embed', player['videoList'][player['videoPlay']], '', '', '');
+-    else if (option['plugin'] == 'Alt' || option['plugin'] == 'VLC') player['contentVideo'] = createMyElement ('embed', player['videoList'][player['videoPlay']], '', '', '');
 -    else player['contentVideo'] = createMyElement ('object', player['videoList'][player['videoPlay']], '', '', '');
 -    player['contentVideo'].width = player['contentWidth'];
 -    player['contentVideo'].height = player['contentHeight'];

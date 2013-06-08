@@ -26,3 +26,5 @@ Fixes:
 
 2013/05/25: update to ViewTube 2013-05-21 and fix of blip.com
 
+2013/06/08: update to ViewTube 2013-06-06
+
