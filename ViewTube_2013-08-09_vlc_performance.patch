@@ -1,0 +1,72 @@
+--- viewtube-2013-08-07.user.js	2013-08-09 10:44:37.000000000 +0200
++++ viewtube-2013-08-07_new.user.js	2013-08-09 11:43:25.916702458 +0200
+@@ -96,7 +96,7 @@
+ var player = {};
+ var feature = {'autoplay': true, 'definition': true, 'container': true, 'widesize': true, 'fullsize': true};
+ var option = {'plugin': 'Auto', 'autoplay': false, 'autoget': false, 'definition': 'HD', 'container': 'MP4', 'widesize': false, 'fullsize': false};
+-var plugins = ['Auto', 'Alt', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
++var plugins = ['Auto', 'HTML5', 'MPEG', 'MP4', 'FLV', 'VLC'];
+ if (navigator.platform.indexOf('Win') != -1) plugins = plugins.concat(['WMP', 'WMP2', 'QT']);
+ else if (navigator.platform.indexOf('Mac') != -1) plugins = plugins.concat(['QT']);
+ else plugins = plugins.concat(['Totem', 'Xine']);
+@@ -130,6 +130,42 @@
+  
+ // ==========Functions========== //
+ 
++function createVideoElement (type, content) {
++  function createPlayerElement (type, content) {
++    player['contentVideo'] = createMyElement (type, content, '', '', '');
++    player['contentVideo'].width = player['contentWidth'];
++    player['contentVideo'].height = player['contentHeight'];
++    styleMyElement (player['contentVideo'], {position: 'relative', width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
++    modifyMyElement (player['playerContent'], 'div', '', true);
++    appendMyElement (player['playerContent'], player['contentVideo']); 
++  }
++  /* Resolve redirects, if possible */
++    if (typeof(GM_xmlhttpRequest) == "function") {
++    var GM_xml = GM_xmlhttpRequest({
++        method: "HEAD",
++	headers: {
++	  "Referer": page.url
++	},
++        url: content,
++        synchronous: false,
++        onload: function(response) {
++          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
++          createPlayerElement(type, content);
++        },
++        onabort: function(response) {
++          content = (typeof(response.finalUrl) == "string") ? (response.finalUrl.indexOf('http') == 0) ? response.finalUrl : content : content;
++          createPlayerElement(type, content);
++        },
++        onprogress: function(response) {    // this is required in older Greasemonkey as it will dowload complete content despite the "HEAD" request method!!!
++          GM_xml.abort();
++        }
++      });
++    }
++    else {
++      createPlayerElement(type, content);
++    }
++}
++
+ function createMyElement (type, content, event, action, target) {
+   var obj = page.doc.createElement(type);
+   if (content) {
+@@ -540,14 +576,9 @@
+     player['isPlaying'] = true;
+     modifyMyElement (player['buttonPlay'], 'div', 'Stop', false);
+     styleMyElement (player['buttonPlay'], {color: '#AD0000'});
+-    if (option['plugin'] == 'HTML5') player['contentVideo'] = createMyElement ('video', player['videoList'][player['videoPlay']], '', '', '');
+-    else if (option['plugin'] == 'Alt' || option['plugin'] == 'VLC') player['contentVideo'] = createMyElement ('embed', player['videoList'][player['videoPlay']], '', '', '');
+-    else player['contentVideo'] = createMyElement ('object', player['videoList'][player['videoPlay']], '', '', '');
+-    player['contentVideo'].width = player['contentWidth'];
+-    player['contentVideo'].height = player['contentHeight'];
+-    styleMyElement (player['contentVideo'], {position: 'relative', width: player['contentWidth'] + 'px', height: player['contentHeight'] + 'px'});
+-    modifyMyElement (player['playerContent'], 'div', '', true);
+-    appendMyElement (player['playerContent'], player['contentVideo']);
++    if (option['plugin'] == 'HTML5') player['contentVideo'] = createVideoElement ('video', player['videoList'][player['videoPlay']]);
++    else if (((navigator.appName == 'Netscape') && (navigator.userAgent.indexOf("AppleWebKit") == -1))) player['contentVideo'] = createVideoElement ('embed', player['videoList'][player['videoPlay']]);
++    else createVideoElement ('object', player['videoList'][player['videoPlay']]);
+   }
+   else {
+     player['isPlaying'] = false;
