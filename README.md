@@ -28,3 +28,4 @@ Fixes:
 
 2013/06/08: update to ViewTube 2013-06-06
 
+2013/08/09: update to ViewTube 2013-08-09
