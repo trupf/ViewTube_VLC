@@ -1,3 +1,7 @@
+Viewtube_VLC is not longer maintained here. The successor can be found here: http://userscripts.org/scripts/show/169665.
+
+
+
 ViewTube_VLC
 ============
 
